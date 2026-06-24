@@ -1,0 +1,37 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Local environment and secrets
+.env
+.env.local
+db.sqlite3
+
+# Runtime artifacts (demo tasks write here)
+artifacts/
+reports/
+
+# Test and coverage output
+.coverage
+.coverage.*
+htmlcov/
+*.log
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Local project scope docs (academic capstone; not for the repo)
+task_scheduler_scope.txt
+task_scheduler_scope_revised.txt
