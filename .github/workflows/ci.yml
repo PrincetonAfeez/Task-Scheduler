@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: task_scheduler
+          POSTGRES_USER: scheduler
+          POSTGRES_PASSWORD: scheduler
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U scheduler -d task_scheduler"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://scheduler:scheduler@localhost:5432/task_scheduler
+      REDIS_URL: redis://localhost:6379/0
+      DEBUG: "1"
+      SECRET_KEY: ci-test-secret-key-with-enough-entropy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Ruff
+        run: ruff check scheduler_app tests task_scheduler
+      - name: Mypy
+        run: mypy scheduler_app task_scheduler
+      - name: Django deploy check
+        run: python manage.py check --deploy
+        env:
+          DEBUG: "0"
+          SECRET_KEY: ci-check-deploy-secret-key-with-enough-entropy
+          SCHEDULER_CLI_SECRET: ci-check-deploy-cli-secret
+      - name: Pytest with coverage (SQLite)
+        run: python -m pytest --cov=scheduler_app --cov-report=term-missing --cov-fail-under=93
+      - name: Pytest (PostgreSQL concurrency and demo single-fire)
+        run: python -m pytest -m postgresql --ds=task_scheduler.test_settings_postgres -v
+      - name: Pytest (Redis readiness and integration smoke)
+        run: python -m pytest tests/test_round3.py tests/test_round4.py tests/test_polish.py tests/test_management_loops.py -v
