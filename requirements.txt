@@ -1,0 +1,8 @@
+# Runtime dependencies (Python >=3.12)
+# Pin exact versions for reproducible installs: pip install -r requirements.lock
+Django>=5.2,<6.0
+croniter>=3.0,<7.0
+dj-database-url>=2.2,<4.0
+django-redis>=5.4,<8.0
+psycopg[binary]>=3.2,<4.0
+gunicorn>=22.0,<24.0
