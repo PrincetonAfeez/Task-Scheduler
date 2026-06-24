@@ -1,4 +1,4 @@
-""" Task registry operations for the scheduler app. """
+""" Task registry operations for the scheduler app """
 
 from __future__ import annotations
 
