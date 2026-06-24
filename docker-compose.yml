@@ -1,0 +1,81 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: task_scheduler
+      POSTGRES_USER: scheduler
+      POSTGRES_PASSWORD: scheduler
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scheduler -d task_scheduler"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    command: sh -c "python manage.py migrate && python manage.py ensure_dev_user && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      SECRET_KEY: dev-compose-secret
+      DEBUG: "1"
+      DATABASE_URL: postgres://scheduler:scheduler@postgres:5432/task_scheduler
+      REDIS_URL: redis://redis:6379/0
+      APP_TIMEZONE: America/Los_Angeles
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    build: .
+    command: sh -c "python manage.py migrate && python manage.py scheduler run"
+    environment:
+      SECRET_KEY: dev-compose-secret
+      DEBUG: "1"
+      DATABASE_URL: postgres://scheduler:scheduler@postgres:5432/task_scheduler
+      REDIS_URL: redis://redis:6379/0
+      APP_TIMEZONE: America/Los_Angeles
+      SCHEDULER_TICK_SECONDS: 5
+      PRUNE_HISTORY_EVERY_N_TICKS: 720
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: sh -c "python manage.py migrate && python manage.py worker run --workers 2"
+    environment:
+      SECRET_KEY: dev-compose-secret
+      DEBUG: "1"
+      DATABASE_URL: postgres://scheduler:scheduler@postgres:5432/task_scheduler
+      REDIS_URL: redis://redis:6379/0
+      APP_TIMEZONE: America/Los_Angeles
+      WORKER_COUNT: 2
+      EXECUTOR_BACKEND: subprocess
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+
