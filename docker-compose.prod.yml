@@ -1,0 +1,30 @@
+# Production-oriented overrides. Use with:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+#
+# Set SECRET_KEY, ALLOWED_HOSTS, and SCHEDULER_CLI_SECRET in a .env file or
+# orchestrator secrets before exposing this stack publicly.
+services:
+  web:
+    environment:
+      DEBUG: "0"
+      WEBUI_AUTH: "1"
+      WEBUI_PUBLIC_READ: "0"
+      SECURE_COOKIES: "1"
+      SECURE_SSL_REDIRECT: "0"
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env or the environment}
+      SCHEDULER_CLI_SECRET: ${SCHEDULER_CLI_SECRET:?Set SCHEDULER_CLI_SECRET in .env or the environment}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
+      READYZ_REQUIRE_HEARTBEATS: "1"
+      READYZ_REQUIRE_WORKER_HEARTBEAT: "1"
+    # Production web startup does not run ensure_dev_user; create operators via createsuperuser.
+    command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn task_scheduler.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 60"
+
+  scheduler:
+    environment:
+      DEBUG: "0"
+      PRUNE_HISTORY_EVERY_N_TICKS: 720
+
+  worker:
+    environment:
+      DEBUG: "0"
