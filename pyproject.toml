@@ -1,0 +1,46 @@
+[project]
+name = "task-scheduler"
+version = "1.0.0"
+description = "A DB-backed cron-like task scheduler built with Django, HTMX, PostgreSQL, and Redis."
+requires-python = ">=3.12"
+readme = "README.md"
+license = { text = "MIT" }
+# Runtime dependencies: requirements.txt (pinned in requirements.lock)
+# Dev/test dependencies: requirements-dev.txt
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "task_scheduler.test_settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+  "postgresql: requires a real PostgreSQL database for row-locking semantics",
+]
+
+[tool.coverage.run]
+source = ["scheduler_app"]
+branch = false
+omit = [
+  "scheduler_app/migrations/*",
+]
+
+[tool.coverage.report]
+fail_under = 93
+show_missing = true
+skip_covered = false
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "task_scheduler.settings"
