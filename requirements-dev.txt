@@ -1,0 +1,12 @@
+# Development, lint, type-check, and test dependencies
+-r requirements.txt
+pytest>=8.3,<9.0
+pytest-django>=4.9,<5.0
+pytest-cov>=5.0,<8.0
+ruff>=0.15,<1.0
+mypy>=2.1,<2.2
+django-stubs[compatible-mypy]>=6.0,<7.0
+
+# Optional: regenerate requirements.lock after editing requirements.txt
+#   pip install pip-tools
+#   pip-compile --output-file=requirements.lock requirements.txt
