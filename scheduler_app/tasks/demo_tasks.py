@@ -1,4 +1,4 @@
-""" Demo tasks for the scheduler app. """
+""" Demo tasks for the scheduler app """
 
 from __future__ import annotations
 
