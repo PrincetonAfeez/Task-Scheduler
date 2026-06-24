@@ -1,0 +1,115 @@
+{% extends "scheduler_app/base.html" %}
+{% block title %}{{ job.name }} - Task Scheduler{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{% url 'scheduler_app:job_list' %}">Jobs</a>
+  <span class="sep">/</span>
+  <span aria-current="page">{{ job.name }}</span>
+</nav>
+<div class="page-head">
+  <div>
+    <h1>{{ job.name }}</h1>
+    <p>{{ job.registered_task_name }} · {{ job.schedule_type }} · {{ job.timezone }}</p>
+  </div>
+  {% if user.is_authenticated %}
+  <div class="actions">
+    <a class="button" href="{% url 'scheduler_app:job_edit' job.id %}">Edit</a>
+    {% if job.enabled %}
+      <form method="post" action="{% url 'scheduler_app:job_action' job.id 'trigger' %}">{% csrf_token %}<button class="button primary" type="submit">Run Now</button></form>
+      <form method="post" action="{% url 'scheduler_app:job_action' job.id 'disable' %}">{% csrf_token %}<button class="button warning" type="submit">Disable</button></form>
+    {% else %}
+      <form method="post" action="{% url 'scheduler_app:job_action' job.id 'enable' %}">{% csrf_token %}<button class="button" type="submit">Enable</button></form>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<section class="band">
+  <h2>Stats</h2>
+  <div class="metric-grid">
+    <div class="metric"><span>Total</span><strong>{{ stats.total_runs }}</strong></div>
+    <div class="metric"><span>Succeeded</span><strong>{{ stats.success_count }}</strong></div>
+    <div class="metric"><span>Failed</span><strong>{{ stats.failure_count }}</strong></div>
+    <div class="metric"><span>Timed Out</span><strong>{{ stats.timeout_count }}</strong></div>
+    <div class="metric"><span>Misfires</span><strong>{{ stats.misfire_count }}</strong></div>
+    <div class="metric"><span>Last Status</span><strong>{{ stats.last_status }}</strong></div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="split">
+    <div>
+      <h2>Configuration</h2>
+      <dl class="definition">
+        <dt>Next run</dt><dd>{{ job.next_run_at|date:"Y-m-d H:i:s T"|default:"-" }}</dd>
+        <dt>Last run</dt><dd>{{ job.last_run_at|date:"Y-m-d H:i:s T"|default:"-" }}</dd>
+        <dt>Overlap</dt><dd>{{ job.overlap_policy }}</dd>
+        <dt>Misfire</dt><dd>{{ job.misfire_policy }} / {{ job.misfire_grace_seconds }}s grace</dd>
+        <dt>Retries</dt><dd>{{ job.max_attempts }} attempts, {{ job.retry_backoff_seconds }}s base backoff</dd>
+        <dt>Timeout</dt><dd>{{ job.timeout_seconds }}s</dd>
+        <dt>Retention</dt><dd>{{ job.retention_count }} runs / {{ job.retention_days }} days <small class="muted">(0 disables that axis)</small></dd>
+        <dt>Alerts</dt><dd>{{ job.get_alert_mode_display }}</dd>
+      </dl>
+      {% if task_config_json %}
+      <h3>Task config</h3>
+      <pre><code>{{ task_config_json }}</code></pre>
+      {% endif %}
+    </div>
+    <div>
+      <h2>Upcoming</h2>
+      <table class="compact">
+        <tbody>
+          {% for fire_time in upcoming %}
+            <tr><td>{{ fire_time|date:"Y-m-d H:i:s T" }}</td></tr>
+          {% empty %}
+            <tr><td class="muted">No upcoming runs.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <h2>Recent Executions</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Status</th><th>Scheduled</th><th>Attempt</th><th>Duration</th><th></th></tr></thead>
+    <tbody>
+      {% for execution in executions %}
+        <tr>
+          <td>{{ execution.id }}</td>
+          <td><span class="status {{ execution.status }}">{{ execution.status }}</span></td>
+          <td>{% if execution.is_manual %}manual{% else %}{{ execution.scheduled_for|date:"Y-m-d H:i:s T"|default:"-" }}{% endif %}</td>
+          <td>{{ execution.attempt_number }}</td>
+          <td>{{ execution.duration_ms|default:"-" }} ms</td>
+          <td>
+            {% if user.is_authenticated %}
+              <a class="button small" href="{% url 'scheduler_app:execution_detail' execution.id %}">Inspect</a>
+            {% else %}
+              <span class="muted">Sign in</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="muted">No executions yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "scheduler_app/pagination.html" with page_obj=executions %}
+</section>
+
+{% if user.is_authenticated %}
+<section class="band danger-zone">
+  <h2>Delete Job</h2>
+  <p class="muted">This permanently deletes the job and all run history. Type the job name to confirm.</p>
+  <form method="post" action="{% url 'scheduler_app:job_delete' job.id %}">
+    {% csrf_token %}
+    <label>
+      <span>Confirm name: <strong>{{ job.name }}</strong></span>
+      <input type="text" name="confirm_name" autocomplete="off" required>
+    </label>
+    <button class="button danger" type="submit">Delete</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

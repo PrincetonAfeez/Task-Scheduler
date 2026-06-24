@@ -1,0 +1,25 @@
+<table>
+  <thead><tr><th>Name</th><th>Task</th><th>Enabled</th><th>Last Run</th><th>Next Run</th><th></th></tr></thead>
+  <tbody>
+    {% for job in jobs %}
+      <tr>
+        <td><a href="{% url 'scheduler_app:job_detail' job.id %}">{{ job.name }}</a></td>
+        <td>{{ job.registered_task_name }}</td>
+        <td>{{ job.enabled|yesno:"yes,no" }}</td>
+        <td>{{ job.last_run_at|date:"Y-m-d H:i:s T"|default:"-" }}</td>
+        <td>{{ job.next_run_at|date:"Y-m-d H:i:s T"|default:"-" }}</td>
+        <td><a class="button small" href="{% url 'scheduler_app:job_detail' job.id %}">Open</a></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6" class="muted">No jobs yet. {% if user.is_authenticated %}<a href="{% url 'scheduler_app:job_create' %}">Create one</a>.{% else %}<a href="{% url 'login' %}">Sign in</a> to create jobs.{% endif %}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p class="muted jobs-caption">
+  {% if jobs_total > jobs_limit %}
+    Showing first {{ jobs_limit }} of {{ jobs_total }} jobs.
+  {% else %}
+    {{ jobs_total }} job{{ jobs_total|pluralize }}.
+  {% endif %}
+  <a href="{% url 'scheduler_app:job_list' %}">View all jobs</a> (paginated list)
+</p>

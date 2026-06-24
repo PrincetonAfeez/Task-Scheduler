@@ -1,0 +1,9 @@
+<table class="compact">
+  <thead><tr><th>Status</th><th>Count</th></tr></thead>
+  <tbody>
+    {% for status, count in queue.items %}
+      <tr><td><span class="status {{ status }}">{{ status }}</span></td><td>{{ count }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+

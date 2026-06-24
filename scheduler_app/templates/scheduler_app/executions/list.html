@@ -1,0 +1,31 @@
+{% extends "scheduler_app/base.html" %}
+{% block title %}Executions - Task Scheduler{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Executions</h1><p>Durable work queue and run history.</p></div></div>
+<table>
+  <thead><tr><th>ID</th><th>Job</th><th>Status</th><th>Scheduled</th><th>Run After</th><th>Worker</th><th></th></tr></thead>
+  <tbody>
+    {% for execution in executions %}
+      <tr>
+        <td>{{ execution.id }}</td>
+        <td><a href="{% url 'scheduler_app:job_detail' execution.job.id %}">{{ execution.job.name }}</a></td>
+        <td><span class="status {{ execution.status }}">{{ execution.status }}</span></td>
+        <td>{% if execution.is_manual %}manual{% else %}{{ execution.scheduled_for|date:"Y-m-d H:i:s T"|default:"-" }}{% endif %}</td>
+        <td>{{ execution.run_after|date:"Y-m-d H:i:s T" }}</td>
+        <td>{% if user.is_authenticated %}{{ execution.worker_id|default:"-" }}{% else %}<span class="muted">—</span>{% endif %}</td>
+        <td>
+          {% if user.is_authenticated %}
+            <a class="button small" href="{% url 'scheduler_app:execution_detail' execution.id %}">Inspect</a>
+          {% else %}
+            <span class="muted">Sign in to inspect</span>
+          {% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" class="muted">No executions yet. {% if user.is_authenticated %}Trigger a job from its detail page.{% else %}<a href="{% url 'login' %}">Sign in</a> to inspect run output.{% endif %}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% include "scheduler_app/pagination.html" with page_obj=executions %}
+{% endblock %}
+

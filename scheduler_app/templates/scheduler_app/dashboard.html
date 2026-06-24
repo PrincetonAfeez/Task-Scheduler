@@ -1,0 +1,64 @@
+{% extends "scheduler_app/base.html" %}
+{% block title %}Dashboard - Task Scheduler{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Dashboard</h1>
+    <p>PostgreSQL-backed schedules and durable executions.</p>
+  </div>
+  {% if user.is_authenticated %}
+    <a class="button primary" href="{% url 'scheduler_app:job_create' %}">New Job</a>
+  {% else %}
+    <a class="button" href="{% url 'login' %}">Sign in to manage jobs</a>
+  {% endif %}
+</div>
+
+<section class="band">
+  <h2>Summary</h2>
+  <div data-poll-fragment hx-get="{% url 'scheduler_app:summary_fragment' %}" hx-trigger="load" hx-swap="innerHTML">
+    {% include "scheduler_app/fragments/summary.html" %}
+  </div>
+</section>
+
+<section class="band">
+  <div class="split">
+    <div>
+      <h2>Queue Depth</h2>
+      <div data-poll-fragment hx-get="{% url 'scheduler_app:queue_fragment' %}" hx-trigger="load" hx-swap="innerHTML">
+        {% include "scheduler_app/fragments/queue.html" %}
+      </div>
+    </div>
+    <div>
+      <h2>Upcoming Runs</h2>
+      <div data-poll-fragment hx-get="{% url 'scheduler_app:upcoming_fragment' %}" hx-trigger="load" hx-swap="innerHTML">
+        {% include "scheduler_app/fragments/upcoming.html" %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="split">
+    <h2>Jobs</h2>
+    <a class="button small" href="{% url 'scheduler_app:job_list' %}">View all jobs</a>
+  </div>
+  <div data-poll-fragment hx-get="{% url 'scheduler_app:jobs_fragment' %}" hx-trigger="load" hx-swap="innerHTML">
+    {% include "scheduler_app/fragments/jobs.html" %}
+  </div>
+</section>
+
+<section class="band">
+  <h2>Recent Activity</h2>
+  <div data-poll-fragment hx-get="{% url 'scheduler_app:activity_fragment' %}" hx-trigger="load" hx-swap="innerHTML">
+    {% include "scheduler_app/fragments/activity.html" %}
+  </div>
+</section>
+
+<section class="band">
+  <h2>Health</h2>
+  <div data-poll-fragment hx-get="{% url 'scheduler_app:health_fragment' %}" hx-trigger="load" hx-swap="innerHTML">
+    {% include "scheduler_app/fragments/health.html" %}
+  </div>
+</section>
+{% endblock %}
+

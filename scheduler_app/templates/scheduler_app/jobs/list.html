@@ -1,0 +1,34 @@
+{% extends "scheduler_app/base.html" %}
+{% block title %}Jobs - Task Scheduler{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Jobs</h1><p>Schedule definitions stored in PostgreSQL.</p></div>
+  {% if user.is_authenticated %}
+    <a class="button primary" href="{% url 'scheduler_app:job_create' %}">New Job</a>
+  {% endif %}
+</div>
+<table>
+  <thead><tr><th>Name</th><th>Task</th><th>Schedule</th><th>Enabled</th><th>Next Run</th><th></th></tr></thead>
+  <tbody>
+    {% for job in jobs %}
+      <tr>
+        <td><a href="{% url 'scheduler_app:job_detail' job.id %}">{{ job.name }}</a></td>
+        <td>{{ job.registered_task_name }}</td>
+        <td>{{ job.schedule_type }}</td>
+        <td>{{ job.enabled|yesno:"yes,no" }}</td>
+        <td>{{ job.next_run_at|date:"Y-m-d H:i:s T"|default:"-" }}</td>
+        <td>
+          {% if user.is_authenticated %}
+            <a class="button small" href="{% url 'scheduler_app:job_edit' job.id %}">Edit</a>
+          {% else %}
+            <a class="button small" href="{% url 'scheduler_app:job_detail' job.id %}">Open</a>
+          {% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6" class="muted">No jobs have been created. {% if user.is_authenticated %}<a href="{% url 'scheduler_app:job_create' %}">Create a job</a>.{% else %}<a href="{% url 'login' %}">Sign in</a> to manage schedules.{% endif %}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% include "scheduler_app/pagination.html" with page_obj=jobs %}
+{% endblock %}

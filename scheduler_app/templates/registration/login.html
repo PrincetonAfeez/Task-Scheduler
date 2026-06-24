@@ -1,0 +1,28 @@
+{% extends "scheduler_app/base.html" %}
+{% block title %}Sign in - Task Scheduler{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Sign in</h1>
+    <p>Web UI actions require an authenticated operator account.</p>
+  </div>
+</div>
+<form method="post" class="form-grid">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="message error" role="alert">
+      {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+    </div>
+  {% endif %}
+  {% for field in form %}
+    <label>
+      <span>{{ field.label }}</span>
+      {{ field }}
+      {% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}
+    </label>
+  {% endfor %}
+  <div class="form-actions">
+    <button class="button primary" type="submit">Sign in</button>
+  </div>
+</form>
+{% endblock %}

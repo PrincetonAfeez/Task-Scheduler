@@ -1,0 +1,48 @@
+{% extends "scheduler_app/base.html" %}
+{% block title %}Execution {{ execution.id }} - Task Scheduler{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{% url 'scheduler_app:job_list' %}">Jobs</a>
+  <span class="sep">/</span>
+  <a href="{% url 'scheduler_app:job_detail' execution.job.id %}">{{ execution.job.name }}</a>
+  <span class="sep">/</span>
+  <span aria-current="page">Execution {{ execution.id }}</span>
+</nav>
+<div class="page-head">
+  <div>
+    <h1>Execution {{ execution.id }}</h1>
+    <p><a href="{% url 'scheduler_app:job_detail' execution.job.id %}">{{ execution.job.name }}</a> · <span class="status {{ execution.status }}">{{ execution.status }}</span></p>
+  </div>
+  {% if user.is_authenticated %}
+  <div class="actions">
+    {% if execution.status == "failed" or execution.status == "timed_out" or execution.status == "dead_lettered" or execution.status == "cancelled" %}
+      <form method="post" action="{% url 'scheduler_app:execution_action' execution.id 'retry' %}">{% csrf_token %}<button class="button primary" type="submit">Retry</button></form>
+    {% endif %}
+    {% if execution.status == "pending" or execution.status == "claimed" or execution.status == "retry_scheduled" %}
+      <form method="post" action="{% url 'scheduler_app:execution_action' execution.id 'cancel' %}">{% csrf_token %}<button class="button warning" type="submit">Cancel</button></form>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<section class="band">
+  <dl class="definition">
+    <dt>Scheduled for</dt><dd>{% if execution.is_manual %}manual run{% else %}{{ execution.scheduled_for|date:"Y-m-d H:i:s T"|default:"-" }}{% endif %}</dd>
+    <dt>Run after</dt><dd>{{ execution.run_after|date:"Y-m-d H:i:s T" }}</dd>
+    <dt>Attempt</dt><dd>{{ execution.attempt_number }}</dd>
+    <dt>Claimed by</dt><dd>{{ execution.claimed_by|default:"-" }}</dd>
+    <dt>Worker</dt><dd>{{ execution.worker_id|default:"-" }}</dd>
+    <dt>Started</dt><dd>{{ execution.started_at|date:"Y-m-d H:i:s T"|default:"-" }}</dd>
+    <dt>Finished</dt><dd>{{ execution.finished_at|date:"Y-m-d H:i:s T"|default:"-" }}</dd>
+    <dt>Duration</dt><dd>{{ execution.duration_ms|default:"-" }} ms</dd>
+    <dt>Idempotency key</dt><dd><code>{{ execution.idempotency_key }}</code></dd>
+  </dl>
+</section>
+
+<section class="band">
+  <h2>Output</h2>
+  <pre>{{ execution.output|default:"" }}</pre>
+  <h2>Error</h2>
+  <pre>{{ execution.error|default:"" }}</pre>
+</section>
+{% endblock %}

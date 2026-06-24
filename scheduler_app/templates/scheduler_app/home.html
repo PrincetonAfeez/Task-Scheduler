@@ -1,0 +1,38 @@
+{% extends "scheduler_app/base.html" %}
+{% block title %}Task Scheduler{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Task Scheduler</h1>
+    <p>PostgreSQL-backed cron-like scheduling with durable executions, retries, and leases.</p>
+  </div>
+  {% if user.is_authenticated %}
+    <a class="button primary" href="{% url 'scheduler_app:dashboard' %}">Open Dashboard</a>
+  {% else %}
+    <a class="button primary" href="{% url 'login' %}">Sign in</a>
+  {% endif %}
+</div>
+
+<section class="band">
+  <h2>Explore</h2>
+  <div class="metric-grid">
+    <a class="metric link-card" href="{% url 'scheduler_app:job_list' %}">
+      <span>Jobs</span><strong>Schedules</strong>
+    </a>
+    <a class="metric link-card" href="{% url 'scheduler_app:execution_list' %}">
+      <span>Executions</span><strong>Run history</strong>
+    </a>
+    {% if user.is_authenticated %}
+      <a class="metric link-card" href="{% url 'scheduler_app:alert_list' %}">
+        <span>Alerts</span><strong>Reliability</strong>
+      </a>
+      <a class="metric link-card" href="{% url 'scheduler_app:health' %}">
+        <span>Health</span><strong>Heartbeats</strong>
+      </a>
+    {% endif %}
+  </div>
+  {% if not user.is_authenticated %}
+    <p class="muted">Sign in to open the live dashboard, view execution output, resolve alerts, and manage jobs.</p>
+  {% endif %}
+</section>
+{% endblock %}

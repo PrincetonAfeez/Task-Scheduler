@@ -1,0 +1,45 @@
+{% extends "scheduler_app/base.html" %}
+{% block title %}Alerts - Task Scheduler{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Alerts</h1><p>Dead letters and operator-visible reliability events.</p></div></div>
+<form method="post" action="{% url 'scheduler_app:alert_resolve_bulk' %}">
+  {% csrf_token %}
+  <table>
+    <thead><tr><th></th><th>Created</th><th>Severity</th><th>Job</th><th>Execution</th><th>Message</th><th>Resolved</th><th></th></tr></thead>
+    <tbody>
+      {% for alert in alerts %}
+        <tr>
+          <td>
+            {% if user.is_authenticated and not alert.resolved %}
+              <input type="checkbox" name="alert_ids" value="{{ alert.id }}">
+            {% endif %}
+          </td>
+          <td>{{ alert.created_at|date:"Y-m-d H:i:s T" }}</td>
+          <td>{{ alert.severity }}</td>
+          <td>{% if alert.job %}<a href="{% url 'scheduler_app:job_detail' alert.job.id %}">{{ alert.job.name }}</a>{% else %}-{% endif %}</td>
+          <td>{% if alert.execution %}<a href="{% url 'scheduler_app:execution_detail' alert.execution.id %}">{{ alert.execution.id }}</a>{% else %}-{% endif %}</td>
+          <td>{{ alert.message }}</td>
+          <td>{{ alert.resolved|yesno:"yes,no" }}</td>
+          <td>
+            {% if user.is_authenticated and not alert.resolved %}
+              <button
+                class="button small"
+                type="submit"
+                formaction="{% url 'scheduler_app:alert_resolve' alert.id %}"
+              >Resolve</button>
+            {% elif not alert.resolved %}
+              <span class="muted">Sign in to resolve</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8" class="muted">No alerts.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if user.is_authenticated %}
+    <p><button class="button" type="submit">Resolve selected</button></p>
+  {% endif %}
+</form>
+{% include "scheduler_app/pagination.html" with page_obj=alerts %}
+{% endblock %}

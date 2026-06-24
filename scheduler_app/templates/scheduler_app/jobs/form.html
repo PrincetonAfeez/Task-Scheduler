@@ -1,0 +1,35 @@
+{% extends "scheduler_app/base.html" %}
+{% block title %}{{ title }} - Task Scheduler{% endblock %}
+{% block content %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="{% url 'scheduler_app:job_list' %}">Jobs</a>
+  <span class="sep">/</span>
+  {% if job %}
+    <a href="{% url 'scheduler_app:job_detail' job.id %}">{{ job.name }}</a>
+    <span class="sep">/</span>
+    <span aria-current="page">Edit</span>
+  {% else %}
+    <span aria-current="page">New job</span>
+  {% endif %}
+</nav>
+<div class="page-head">
+  <div><h1>{{ title }}</h1><p>Jobs can only call registered Python tasks.</p></div>
+</div>
+<form method="post" class="form-grid">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}
+    <label>
+      <span>{{ field.label }}</span>
+      {{ field }}
+      {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+      {% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}
+    </label>
+  {% endfor %}
+  <div class="form-actions">
+    <button class="button primary" type="submit">Save</button>
+    <a class="button" href="{% url 'scheduler_app:job_list' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+

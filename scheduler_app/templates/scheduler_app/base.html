@@ -1,0 +1,47 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Task Scheduler{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'scheduler_app/styles.css' %}">
+  <script src="{% static 'scheduler_app/htmx.min.js' %}" defer></script>
+  <script src="{% static 'scheduler_app/poll-fragments.js' %}" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{% url 'scheduler_app:home' %}">Task Scheduler</a>
+    <nav>
+      <a href="{% url 'scheduler_app:home' %}">Home</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'scheduler_app:dashboard' %}">Dashboard</a>
+        <a href="{% url 'scheduler_app:job_list' %}">Jobs</a>
+        <a href="{% url 'scheduler_app:execution_list' %}">Executions</a>
+        <a href="{% url 'scheduler_app:alert_list' %}">Alerts</a>
+        <a href="{% url 'scheduler_app:health' %}">Health</a>
+        <span class="muted">{{ user.username }}</span>
+        <form method="post" action="{% url 'logout' %}" class="logout-form">
+          {% csrf_token %}
+          <button type="submit" class="link-button">Sign out</button>
+        </form>
+      {% else %}
+        <a href="{% url 'scheduler_app:job_list' %}">Jobs</a>
+        <a href="{% url 'scheduler_app:execution_list' %}">Executions</a>
+        <a href="{% url 'login' %}">Sign in</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="page">
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

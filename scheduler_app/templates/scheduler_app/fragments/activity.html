@@ -1,0 +1,16 @@
+<table class="compact">
+  <thead><tr><th>ID</th><th>Job</th><th>Status</th><th>Attempt</th><th>When</th></tr></thead>
+  <tbody>
+    {% for execution in executions %}
+      <tr>
+        <td><a href="{% url 'scheduler_app:execution_detail' execution.id %}">{{ execution.id }}</a></td>
+        <td><a href="{% url 'scheduler_app:job_detail' execution.job.id %}">{{ execution.job.name }}</a></td>
+        <td><span class="status {{ execution.status }}">{{ execution.status }}</span></td>
+        <td>{{ execution.attempt_number }}</td>
+        <td>{{ execution.created_at|date:"Y-m-d H:i:s T" }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="muted">No executions yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>

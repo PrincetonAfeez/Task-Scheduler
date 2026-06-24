@@ -1,0 +1,13 @@
+{% extends "scheduler_app/base.html" %}
+{% block title %}Health - Task Scheduler{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Health</h1><p>Scheduler and worker heartbeats plus current queue depth.</p></div></div>
+<section class="band">
+  {% include "scheduler_app/fragments/health.html" %}
+</section>
+<section class="band">
+  <h2>Queue</h2>
+  {% include "scheduler_app/fragments/queue.html" %}
+</section>
+{% endblock %}
+

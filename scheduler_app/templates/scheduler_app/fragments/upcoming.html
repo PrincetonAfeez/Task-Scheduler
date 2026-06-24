@@ -1,0 +1,10 @@
+<table class="compact">
+  <thead><tr><th>Job</th><th>Scheduled For</th></tr></thead>
+  <tbody>
+    {% for item in upcoming %}
+      <tr><td><a href="{% url 'scheduler_app:job_detail' item.0.id %}">{{ item.0.name }}</a></td><td>{{ item.1|date:"Y-m-d H:i:s T" }}</td></tr>
+    {% empty %}
+      <tr><td colspan="2" class="muted">No upcoming enabled jobs.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>

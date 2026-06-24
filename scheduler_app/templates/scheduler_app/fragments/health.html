@@ -1,0 +1,29 @@
+<div class="split">
+  <section>
+    <h3>Schedulers</h3>
+    <table class="compact">
+      <thead><tr><th>ID</th><th>State</th><th>Last Tick</th></tr></thead>
+      <tbody>
+        {% for scheduler in schedulers %}
+          <tr><td>{{ scheduler.scheduler_id }}</td><td>{{ scheduler.health_state }}</td><td>{{ scheduler.last_tick_at|date:"Y-m-d H:i:s T" }}</td></tr>
+        {% empty %}
+          <tr><td colspan="3" class="muted">No scheduler heartbeat yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  <section>
+    <h3>Workers</h3>
+    <table class="compact">
+      <thead><tr><th>ID</th><th>State</th><th>Last Beat</th></tr></thead>
+      <tbody>
+        {% for worker in workers %}
+          <tr><td>{{ worker.worker_id }}</td><td>{{ worker.health_state }}</td><td>{{ worker.last_heartbeat_at|date:"Y-m-d H:i:s T" }}</td></tr>
+        {% empty %}
+          <tr><td colspan="3" class="muted">No worker heartbeat yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
