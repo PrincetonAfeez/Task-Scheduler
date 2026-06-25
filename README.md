@@ -123,26 +123,115 @@ docker compose exec web python -m pytest --cov=scheduler_app --cov-report=term-m
 docker compose exec web python -m pytest -m postgresql --ds=task_scheduler.test_settings_postgres -v
 ```
 
-## CLI
+## CLI Reference
+
+Quick example:
 
 ```powershell
-python manage.py scheduler run --once
-python manage.py worker run --workers 2 --once
-python manage.py job catalog
 python manage.py job add "Daily report" generate_report cron --cron "0 9 * * 1-5" --timezone America/Los_Angeles
-python manage.py job preview 1
-python manage.py job trigger 1
-python manage.py execution list
-python manage.py execution inspect 1
-python manage.py execution retry 1
-python manage.py alerts resolve 1
-python manage.py execution cancel 1
-python manage.py ensure_dev_user
+```
+
+### `job add`
+
+```powershell
+python manage.py job add NAME TASK SCHEDULE_TYPE [options]
+```
+
+Supported schedule types:
+
+- `one_time`
+- `interval`
+- `cron`
+
+Common options:
+
+- `--schedule-value` — JSON schedule object, for example `{"every": "30s"}`.
+- `--run-at` — ISO datetime for `one_time` jobs.
+- `--every` — interval duration such as `30s`, `5m`, `2h`, or `1d`.
+- `--cron` — cron expression, for example `"0 9 * * 1-5"`.
+- `--timezone` — IANA timezone name. Defaults to `UTC`.
+- `--description` — job description.
+- `--config` — JSON task config object.
+- `--overlap-policy` — `skip`, `queue`, or `allow`.
+- `--misfire-policy` — `coalesce`, `catch_up`, or `skip`.
+- `--misfire-grace-seconds` — grace window before a run is considered missed.
+- `--max-attempts` — retry attempt limit.
+- `--retry-backoff-seconds` — base retry delay.
+- `--timeout-seconds` — task hard timeout.
+- `--alert-mode` — `web` or `log_only`.
+- `--cli-secret` — required for mutating commands when `SCHEDULER_CLI_SECRET` is set.
+
+### `job edit`
+
+```powershell
+python manage.py job edit JOB_ID [options]
+```
+
+Common options:
+
+- `--name` — new job name.
+- `--task` — registered task name.
+- `--schedule-type` — `one_time`, `interval`, or `cron`.
+- `--schedule-value` — JSON schedule object.
+- `--timezone` — IANA timezone name.
+- `--config` — JSON task config object.
+- `--enabled` / `--disabled` — toggle job state (mutually exclusive).
+- `--cli-secret` — required when `SCHEDULER_CLI_SECRET` is set.
+
+### Other useful commands
+
+```powershell
+python manage.py job list
+python manage.py job catalog
+python manage.py job preview JOB_ID
+python manage.py job trigger JOB_ID
+python manage.py job enable JOB_ID
+python manage.py job disable JOB_ID
+python manage.py job delete JOB_ID --yes
+python manage.py execution list --status failed --limit 25
+python manage.py execution inspect EXECUTION_ID
+python manage.py execution retry EXECUTION_ID
+python manage.py execution cancel EXECUTION_ID
+python manage.py alerts list
+python manage.py alerts resolve ALERT_ID
+python manage.py scheduler run --once
+python manage.py scheduler run --tick-seconds 5
+python manage.py worker run --workers 2 --once
 python manage.py health
 python manage.py prune_history
+python manage.py ensure_dev_user
 python manage.py demo single-fire
 python manage.py demo misfire
 python manage.py demo timeout
+```
+
+Scheduler and worker flags:
+
+- `scheduler run --scheduler-id ID` — custom scheduler identity for heartbeats.
+- `worker run --worker-id ID` — custom worker identity for claims and heartbeats.
+
+Mutating job, execution, and alert commands accept `--cli-secret` when `SCHEDULER_CLI_SECRET` is set (`job add`, `job edit`, `job enable`, `job disable`, `job delete`, `job trigger`, `execution retry`, `execution cancel`, `alerts resolve`).
+
+Run `python manage.py <command> --help` for the full argparse reference on any command group.
+
+## CLI Exit Codes
+
+Scheduler management commands follow Django management-command behavior:
+
+| Exit code | Meaning |
+|----------:|---------|
+| 0 | Command completed successfully. |
+| 1 | Command failed with a handled application/runtime error, usually surfaced as `CommandError`. |
+| 2 | Command-line usage error, such as missing required arguments or invalid argparse choices. |
+
+Examples:
+
+```powershell
+python manage.py job list
+# exit 0
+
+python manage.py job add "Bad job" not_a_real_task interval --every 30s
+# exits non-zero with a clear error message
 ```
 
 ## Registered Tasks
@@ -224,6 +313,8 @@ Each job stores `retention_count` and `retention_days`. Set either value to **0*
 ## Web UI Authentication
 
 Mutating web actions (create/edit/delete jobs, trigger/disable, retry/cancel executions, resolve alerts) require sign-in when `WEBUI_AUTH=1` (the default). The live dashboard (`/dashboard/`), health page, alerts list, execution detail (including output/error), and HTMX operational fragments also require sign-in.
+
+Signed-in operators can resolve individual alerts or bulk-resolve selected alerts from the alerts page; these mutating actions require authentication.
 
 The public home page (`/`), job list, job detail (stats and metadata), and execution list remain readable without sign-in. List pages paginate at **50** rows (job detail executions: **30**). The dashboard jobs panel shows the first **25** jobs with a link to the full paginated job list.
 

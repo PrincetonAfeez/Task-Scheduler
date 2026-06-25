@@ -7,7 +7,7 @@ from django.db import IntegrityError
 from django.urls import reverse
 
 from scheduler_app.forms import JobForm
-from scheduler_app.models import ExecutionStatus, Job, JobExecution, ScheduleType
+from scheduler_app.models import Alert, ExecutionStatus, Job, JobExecution, ScheduleType
 from scheduler_app.services.clock import FrozenClock
 from scheduler_app.services.due import SchedulerService
 
@@ -253,6 +253,44 @@ def test_execution_retry_action_redirects(auth_client, job_factory, now):
     response = auth_client.post(url)
     assert response.status_code == 302
     assert JobExecution.objects.filter(job=job, is_manual=True).exists()
+
+
+@pytest.mark.django_db
+def test_alert_resolve_post_marks_alert_resolved(auth_client):
+    alert = Alert.objects.create(message="resolve me")
+
+    response = auth_client.post(reverse("scheduler_app:alert_resolve", args=[alert.id]))
+
+    assert response.status_code == 302
+    alert.refresh_from_db()
+    assert alert.resolved is True
+
+
+@pytest.mark.django_db
+def test_alert_resolve_bulk_marks_selected_alerts_resolved(auth_client):
+    first = Alert.objects.create(message="first")
+    second = Alert.objects.create(message="second")
+    untouched = Alert.objects.create(message="third")
+
+    response = auth_client.post(
+        reverse("scheduler_app:alert_resolve_bulk"),
+        {"alert_ids": [str(first.id), str(second.id)]},
+    )
+
+    assert response.status_code == 302
+    first.refresh_from_db()
+    second.refresh_from_db()
+    untouched.refresh_from_db()
+    assert first.resolved is True
+    assert second.resolved is True
+    assert untouched.resolved is False
+
+
+@pytest.mark.django_db
+def test_alert_resolve_bulk_requires_selection(auth_client):
+    response = auth_client.post(reverse("scheduler_app:alert_resolve_bulk"), {"alert_ids": []})
+
+    assert response.status_code == 302
 
 
 @pytest.mark.django_db
