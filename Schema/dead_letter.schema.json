@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/task-scheduler/dead_letter.schema.json",
+  "title": "Task Scheduler Dead Letter",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["job_id", "execution_id", "reason", "attempts_used"],
+  "properties": {
+    "id": {"type": "integer", "minimum": 1},
+    "job_id": {"type": "integer", "minimum": 1},
+    "execution_id": {"type": "integer", "minimum": 1},
+    "reason": {"type": "string", "minLength": 1, "maxLength": 160},
+    "final_error": {"type": "string"},
+    "attempts_used": {"type": "integer", "minimum": 1, "default": 1},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/task-scheduler/job_event.schema.json",
+  "title": "Task Scheduler Job Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_type"],
+  "properties": {
+    "id": {"type": "integer", "minimum": 1},
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "due_detected", "occurrence_created", "occurrence_exists", "claim", "dispatch",
+        "worker_start", "worker_finish", "failure", "retry_scheduled", "timeout",
+        "misfire", "lease_recovery", "stale_claim_rejected", "stale_result_discarded",
+        "manual_retry", "dead_letter", "alert", "cache_invalidation", "cancelled", "operator_action"
+      ]
+    },
+    "job_id": {"type": ["integer", "null"], "minimum": 1},
+    "execution_id": {"type": ["integer", "null"], "minimum": 1},
+    "message": {"type": "string"},
+    "data": {"type": "object", "default": {}},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

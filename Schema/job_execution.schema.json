@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/task-scheduler/job_execution.schema.json",
+  "title": "Task Scheduler Job Execution",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["job_id", "run_after", "status", "attempt_number", "idempotency_key"],
+  "properties": {
+    "id": {"type": "integer", "minimum": 1},
+    "job_id": {"type": "integer", "minimum": 1},
+    "scheduled_for": {"type": ["string", "null"], "format": "date-time"},
+    "run_after": {"type": "string", "format": "date-time"},
+    "status": {
+      "type": "string",
+      "enum": ["pending", "claimed", "running", "succeeded", "failed", "retry_scheduled", "timed_out", "missed", "cancelled", "dead_lettered"],
+      "default": "pending"
+    },
+    "attempt_number": {"type": "integer", "minimum": 1, "default": 1},
+    "idempotency_key": {"type": "string", "minLength": 1, "maxLength": 220},
+    "is_manual": {"type": "boolean", "default": false},
+    "claimed_by": {"type": "string", "maxLength": 160},
+    "claimed_at": {"type": ["string", "null"], "format": "date-time"},
+    "lease_expires_at": {"type": ["string", "null"], "format": "date-time"},
+    "started_at": {"type": ["string", "null"], "format": "date-time"},
+    "finished_at": {"type": ["string", "null"], "format": "date-time"},
+    "duration_ms": {"type": ["integer", "null"], "minimum": 0},
+    "output": {"type": "string"},
+    "error": {"type": "string"},
+    "worker_id": {"type": "string", "maxLength": 160},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"}
+  }
+}

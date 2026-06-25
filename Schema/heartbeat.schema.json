@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/task-scheduler/heartbeat.schema.json",
+  "title": "Task Scheduler Heartbeats",
+  "oneOf": [
+    {"$ref": "#/$defs/SchedulerHeartbeat"},
+    {"$ref": "#/$defs/WorkerHeartbeat"}
+  ],
+  "$defs": {
+    "BaseHeartbeat": {
+      "type": "object",
+      "properties": {
+        "id": {"type": "integer", "minimum": 1},
+        "hostname": {"type": "string", "minLength": 1, "maxLength": 160},
+        "process_id": {"type": "integer", "minimum": 0},
+        "health_state": {"type": "string", "maxLength": 32, "default": "starting"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "SchedulerHeartbeat": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseHeartbeat"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scheduler_id", "hostname", "process_id", "last_tick_at"],
+          "properties": {
+            "id": {"type": "integer", "minimum": 1},
+            "scheduler_id": {"type": "string", "minLength": 1, "maxLength": 160},
+            "hostname": {"type": "string", "minLength": 1, "maxLength": 160},
+            "process_id": {"type": "integer", "minimum": 0},
+            "last_tick_at": {"type": "string", "format": "date-time"},
+            "recent_occurrences_created": {"type": "integer", "minimum": 0, "default": 0},
+            "recent_failure_count": {"type": "integer", "minimum": 0, "default": 0},
+            "health_state": {"type": "string", "maxLength": 32, "default": "starting"},
+            "created_at": {"type": "string", "format": "date-time"},
+            "updated_at": {"type": "string", "format": "date-time"}
+          }
+        }
+      ]
+    },
+    "WorkerHeartbeat": {
+      "allOf": [
+        {"$ref": "#/$defs/BaseHeartbeat"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["worker_id", "hostname", "process_id", "last_heartbeat_at"],
+          "properties": {
+            "id": {"type": "integer", "minimum": 1},
+            "worker_id": {"type": "string", "minLength": 1, "maxLength": 160},
+            "hostname": {"type": "string", "minLength": 1, "maxLength": 160},
+            "process_id": {"type": "integer", "minimum": 0},
+            "last_heartbeat_at": {"type": "string", "format": "date-time"},
+            "active_execution_count": {"type": "integer", "minimum": 0, "default": 0},
+            "completed_count": {"type": "integer", "minimum": 0, "default": 0},
+            "failed_count": {"type": "integer", "minimum": 0, "default": 0},
+            "current_execution_id": {"type": ["integer", "null"], "minimum": 1},
+            "health_state": {"type": "string", "maxLength": 32, "default": "starting"},
+            "created_at": {"type": "string", "format": "date-time"},
+            "updated_at": {"type": "string", "format": "date-time"}
+          }
+        }
+      ]
+    }
+  }
+}

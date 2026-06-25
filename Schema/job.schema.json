@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/task-scheduler/job.schema.json",
+  "title": "Task Scheduler Job",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "registered_task_name", "schedule_type", "schedule_value"],
+  "properties": {
+    "id": {"type": "integer", "minimum": 1},
+    "name": {"type": "string", "minLength": 1, "maxLength": 160},
+    "description": {"type": "string"},
+    "registered_task_name": {"type": "string", "minLength": 1, "maxLength": 160},
+    "schedule_type": {"type": "string", "enum": ["one_time", "interval", "cron"]},
+    "schedule_value": {"type": "object"},
+    "timezone": {"type": "string", "default": "UTC", "maxLength": 64},
+    "enabled": {"type": "boolean", "default": true},
+    "next_run_at": {"type": ["string", "null"], "format": "date-time"},
+    "last_run_at": {"type": ["string", "null"], "format": "date-time"},
+    "overlap_policy": {"type": "string", "enum": ["skip", "queue", "allow"], "default": "skip"},
+    "misfire_policy": {"type": "string", "enum": ["coalesce", "catch_up", "skip"], "default": "coalesce"},
+    "misfire_grace_seconds": {"type": "integer", "minimum": 0, "default": 60},
+    "max_attempts": {"type": "integer", "minimum": 1, "default": 3},
+    "retry_backoff_seconds": {"type": "integer", "minimum": 0, "default": 10},
+    "timeout_seconds": {"type": "integer", "minimum": 1, "default": 30},
+    "retention_count": {"type": "integer", "minimum": 0, "default": 500},
+    "retention_days": {"type": "integer", "minimum": 0, "default": 30},
+    "alert_mode": {"type": "string", "enum": ["log_only", "web"], "default": "web"},
+    "task_config": {"type": "object", "default": {}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"schedule_type": {"const": "one_time"}}, "required": ["schedule_type"]},
+      "then": {
+        "properties": {
+          "schedule_value": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["run_at"],
+            "properties": {
+              "run_at": {"type": "string", "format": "date-time"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"schedule_type": {"const": "interval"}}, "required": ["schedule_type"]},
+      "then": {
+        "properties": {
+          "schedule_value": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["every"],
+            "properties": {
+              "every": {
+                "oneOf": [
+                  {"type": "string", "pattern": "^[0-9]+(s|m|h|d)$"},
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "minProperties": 1,
+                    "properties": {
+                      "seconds": {"type": "integer", "minimum": 1},
+                      "minutes": {"type": "integer", "minimum": 1},
+                      "hours": {"type": "integer", "minimum": 1},
+                      "days": {"type": "integer", "minimum": 1}
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"schedule_type": {"const": "cron"}}, "required": ["schedule_type"]},
+      "then": {
+        "properties": {
+          "schedule_value": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["expression"],
+            "properties": {
+              "expression": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/task-scheduler/alert.schema.json",
+  "title": "Task Scheduler Alert",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["severity", "message", "resolved"],
+  "properties": {
+    "id": {"type": "integer", "minimum": 1},
+    "job_id": {"type": ["integer", "null"], "minimum": 1},
+    "execution_id": {"type": ["integer", "null"], "minimum": 1},
+    "severity": {"type": "string", "enum": ["info", "warning", "error"], "default": "warning"},
+    "message": {"type": "string", "minLength": 1},
+    "resolved": {"type": "boolean", "default": false},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}
